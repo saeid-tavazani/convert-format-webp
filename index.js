@@ -2,25 +2,25 @@ const fs = require("fs");
 const path = require("path");
 const webp = require("webp-converter");
 
-// تابعی که یک فایل را به فرمت WebP تبدیل می‌کند
+// Function that converts a file to WebP format
 function convertToWebP(inputPath, outputDirectory) {
   return new Promise((resolve, reject) => {
-    // خواندن داده‌های فایل ورودی
+    // Reading data from the input file
     fs.readFile(inputPath, (error, data) => {
       if (error) {
         reject(error);
       } else {
-        // تعیین نام فایل خروجی و مسیر خروجی
+        // Determining the output file name and output path
         const outputFileName =
           path.basename(inputPath, path.extname(inputPath)) + ".webp";
         const outputPath = path.join(outputDirectory, outputFileName);
-        // تبدیل داده به فرمت WebP
+        // Converting data to WebP format
         webp
           .buffer2webpbuffer(data, "jpg", "-q 1", {
             tempPath: "/output",
           })
           .then((result) => {
-            // نوشتن فایل خروجی
+            // Writing the output file
             fs.writeFile(outputPath, result, (err) => {
               if (err) {
                 reject(err);
@@ -37,7 +37,7 @@ function convertToWebP(inputPath, outputDirectory) {
   });
 }
 
-// تابع اصلی برای پردازش فایل‌ها
+// Main function for processing files
 function processFiles(directoryPath, outputRootDirectory) {
   fs.readdir(directoryPath, (err, files) => {
     if (err) {
@@ -45,11 +45,11 @@ function processFiles(directoryPath, outputRootDirectory) {
     } else {
       console.log("\nConverting files to WebP:");
 
-      // بررسی اینکه آیا مسیر فعلی یک دایرکتوری است یا خیر
+      // Checking if the current path is a directory or not
       const isDirectory = fs.statSync(directoryPath).isDirectory();
 
       if (isDirectory) {
-        // استفاده از mkdir برای ایجاد دایرکتوری خروجی اگر وجود نداشته باشد
+        // Using mkdir to create the output directory if it doesn't exist
         const baseDirectoryName = path.basename(directoryPath);
         const outputDirectory = path.join(
           outputRootDirectory,
@@ -59,15 +59,15 @@ function processFiles(directoryPath, outputRootDirectory) {
           if (err) {
             console.error(`Error creating output directory: ${err}`);
           } else {
-            // پردازش فایل‌ها در دایرکتوری فعلی
+            // Processing files in the current directory
             files.forEach((file) => {
               const inputPath = path.join(directoryPath, file);
 
               if (fs.statSync(inputPath).isDirectory()) {
-                // اگر یک دایرکتوری باشد، به صورت بازگشتی محتوای داخل آن را پردازش کن
+                // If it's a directory, recursively process its contents
                 processFiles(inputPath, outputDirectory);
               } else {
-                // اگر یک فایل باشد، آن را به فرمت WebP تبدیل کن
+                // If it's a file, convert it to WebP format
                 if (inputPath.includes("jpg") || inputPath.includes("png")) {
                   convertToWebP(inputPath, outputDirectory)
                     .then(() => {
@@ -88,11 +88,11 @@ function processFiles(directoryPath, outputRootDirectory) {
   });
 }
 
-// مسیر ورودی و خروجی را تعیین کن
+// Set input and output directories
 const inputDirectory = path.join(__dirname, "files");
 const outputRootDirectory = path.join(__dirname, "output");
 
-// ایجاد دایرکتوری خروجی اگر وجود نداشته باشد و شروع پردازش فایل‌ها
+// Create the output directory if it doesn't exist and start processing files
 fs.mkdir(outputRootDirectory, { recursive: true }, (err) => {
   if (err) {
     console.error(`Error creating output directory: ${err}`);
